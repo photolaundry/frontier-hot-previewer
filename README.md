@@ -1,0 +1,2 @@
+# Fujifilm Frontier (MS01) scanner hot previewer
+If you use a Fujifilm Frontier film scanner and wanted to check on the last image you just scanned at full resolution, this script does the job! It works by watching `D:\Inspool` on the Frontier export PC (aka PIC/DIC/frontend) as a hot folder. This folder gets populated by the scanner PC (aka EZPC00/FMPC) as it saves individual images as RAW image files (RAW as in just plain RGB data with custom headers). This script will auto convert these RAW files into TIFF and open them up for viewing as they show up.

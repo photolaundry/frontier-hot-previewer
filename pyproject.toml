@@ -1,0 +1,22 @@
+[project]
+name = "frontier-hot-previewer"
+version = "0.1.0"
+description = "A helper script for Frontier scanner users to always open up the last image scanned at full resolution to server as a live preview."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "wand>=0.6.13",
+    "watchdog>=6.0.0",
+]
+
+[project.scripts]
+frontier-hot-previewer = "frontier_hot_previewer:cli"
+
+[build-system]
+requires = ["uv_build>=0.7.20,<0.8.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "ruff>=0.12.2",
+]
