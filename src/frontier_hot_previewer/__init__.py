@@ -9,27 +9,29 @@ from pathlib import Path
 
 from wand.image import Image
 from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import DirCreatedEvent, FileCreatedEvent, FileSystemEvent, PatternMatchingEventHandler
 
 
-class FrontierScanFileHandler(FileSystemEventHandler):
+class FrontierScanFileHandler(PatternMatchingEventHandler):
 
     def __init__(self, tmpdir):
+        PatternMatchingEventHandler.__init__(self, patterns=["*.RAW"], ignore_directories=True, case_sensitive=False)
         self.tmpdir = Path(tmpdir)
         self.tmp_preview_filepath = self.tmpdir / "hot-preview.tif"
 
-    def on_created(self, event) -> None:
-        if event.is_directory:
-            return
+    def on_any_event(self, event: FileSystemEvent) -> None:
+        print(f"file {event.event_type}: {event.src_path}")
+
+    def on_created(self, event: DirCreatedEvent | FileCreatedEvent) -> None:
+        # sometimes the file isn't quite ready to be read?? so we wait a little bit
+        time.sleep(1)
         file_path = Path(event.src_path)
-        if file_path.suffix != ".RAW":
-            return
         with open(file_path, "rb") as img_raw:
             # read off the first 32 bytes for the header
             first_32_bytes = img_raw.read(32)
-            # <H for little-endian unsigned short (2 bytes per msg)
-            headers_bytes = struct.unpack("<HHHHHHHHHHHHHHHH", first_32_bytes)
-            img_height, img_width = headers_bytes[4:6]
+            # <16H for little-endian unsigned short 16 times (2 bytes per msg)
+            headers_bytes = struct.unpack("<16H", first_32_bytes)
+            img_width, img_height = headers_bytes[4:6]
             print(f"height: {img_height} width: {img_width}")
 
             # rest of the img file is raw RGB data, feed into wand
