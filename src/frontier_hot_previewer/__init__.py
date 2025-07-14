@@ -25,10 +25,10 @@ class FrontierScanFileHandler(PatternMatchingEventHandler):
         self.tmpdir = Path(tmpdir)
         self.tmp_preview_filepath = self.tmpdir / "hot-preview.tif"
 
-    def on_any_event(self, event: FileSystemEvent) -> None:
+    def on_any_event(self, event):
         print(f"file {event.event_type}: {event.src_path}")
 
-    def on_created(self, event: DirCreatedEvent | FileCreatedEvent) -> None:
+    def on_created(self, event):
         # Sometimes the file isn't quite ready to be read. The struct.unpack breaks
         # and doesn't get enough bytes from the read() so we wait a little bit
         time.sleep(1)
@@ -58,17 +58,21 @@ class FrontierScanFileHandler(PatternMatchingEventHandler):
 
     def open_image(self):
         open_command = ""
-        match platform.system():
-            case "Darwin":
-                open_command = "open"
-            case "Linux":
-                open_command = "xdg-open"
-            case "Windows":
-                open_command = "start"
-            case _:
-                raise ValueError("Couldn't determine the OS!")
+        sys = platform.system()
+        if sys == "Darwin":
+            open_command = "open"
+        elif sys == "Linux":
+            open_command = "xdg-open"
+        elif sys == "Windows":
+            open_command = "start"
+        else:
+            raise ValueError("Couldn't determine the OS!")
         try:
-            subprocess.run([open_command, str(self.tmp_preview_filepath)], check=True)
+            subprocess.run(
+                [open_command, str(self.tmp_preview_filepath)],
+                check=True,
+                shell=True
+            )
         except subprocess.CalledProcessError as err:
             print("  Error while viewing image:")
             print(err.stdout)
