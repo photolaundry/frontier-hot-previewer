@@ -9,16 +9,11 @@ from pathlib import Path
 
 from wand.image import Image
 from watchdog.observers import Observer
-from watchdog.events import (
-    DirCreatedEvent,
-    FileCreatedEvent,
-    FileSystemEvent,
-    PatternMatchingEventHandler,
-)
+from watchdog.events import PatternMatchingEventHandler
 
 
 class FrontierScanFileHandler(PatternMatchingEventHandler):
-    def __init__(self, tmpdir: str) -> None:
+    def __init__(self, tmpdir):
         PatternMatchingEventHandler.__init__(
             self, patterns=["*.RAW"], ignore_directories=True, case_sensitive=False
         )
@@ -69,9 +64,7 @@ class FrontierScanFileHandler(PatternMatchingEventHandler):
             raise ValueError("Couldn't determine the OS!")
         try:
             subprocess.run(
-                [open_command, str(self.tmp_preview_filepath)],
-                check=True,
-                shell=True
+                [open_command, str(self.tmp_preview_filepath)], check=True, shell=True
             )
         except subprocess.CalledProcessError as err:
             print("  Error while viewing image:")
