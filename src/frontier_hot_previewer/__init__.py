@@ -1,15 +1,34 @@
 import argparse
+import os
+import pathlib
 import platform
 import struct
 import subprocess
+import sys
 import tempfile
 import time
-
-from pathlib import Path
 
 from wand.image import Image
 from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
+
+
+# this block is used when run as a standalone .exe build by pyinstaller to help find IM
+# dependencies are in a subdirectory when packaged with pyinstaller
+if hasattr(sys, "_MEIPASS"):
+    internal_dir = pathlib.Path(sys._MEIPASS)
+    default_config_file = internal_dir / pathlib.Path("cropall_default.ini")
+
+    # ImageMagick directories
+    os.environ["MAGICK_HOME"] = str(internal_dir)
+    os.environ["MAGICK_CODER_FILTER_PATH"] = str(internal_dir / "modules/filters")
+    os.environ["MAGICK_CODER_MODULE_PATH"] = str(internal_dir / "modules/coders")
+
+    # Add the above paths PATH for wand/imagemagick on windows
+    if sys.platform == "win32":
+        os.environ["PATH"] += os.pathsep + os.environ["MAGICK_HOME"]
+        os.environ["PATH"] += os.pathsep + os.environ["MAGICK_CODER_FILTER_PATH"]
+        os.environ["PATH"] += os.pathsep + os.environ["MAGICK_CODER_MODULE_PATH"]
 
 
 class FrontierScanFileHandler(PatternMatchingEventHandler):
@@ -17,7 +36,7 @@ class FrontierScanFileHandler(PatternMatchingEventHandler):
         PatternMatchingEventHandler.__init__(
             self, patterns=["*.RAW"], ignore_directories=True, case_sensitive=False
         )
-        self.tmpdir = Path(tmpdir)
+        self.tmpdir = pathlib.Path(tmpdir)
         self.tmp_preview_filepath = self.tmpdir / "hot-preview.tif"
 
     def on_any_event(self, event):
@@ -73,16 +92,25 @@ class FrontierScanFileHandler(PatternMatchingEventHandler):
 
 
 def cli():
+    watch_path = None
+    if platform.system() == "Windows":
+        watch_path = "D:\Inspool"
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "d_drive_path", help="path to your Frontier PIC/export machine's D drive"
+        "--path",
+        help="path to your Frontier PIC/export machine's D drive",
+        default=watch_path,
     )
     args = parser.parse_args()
+
+    if not args.watch_path:
+        print("No directory specified by --path!")
+        return
 
     with tempfile.TemporaryDirectory() as tmpdir:
         handler = FrontierScanFileHandler(tmpdir)
         observer = Observer()
-        observer.schedule(handler, args.d_drive_path, recursive=True)
+        observer.schedule(handler, args.watch_path, recursive=True)
         observer.start()
 
         try:

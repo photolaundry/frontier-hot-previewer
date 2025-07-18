@@ -1,6 +1,6 @@
 [project]
 name = "frontier-hot-previewer"
-version = "0.1.1"
+version = "0.2.0"
 description = "A helper script for Frontier scanner users to always open up the last image scanned at full resolution to server as a live preview."
 readme = "README.md"
 requires-python = ">=3.8"
