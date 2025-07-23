@@ -94,7 +94,7 @@ class FrontierScanFileHandler(PatternMatchingEventHandler):
 def cli():
     watch_path = None
     if platform.system() == "Windows":
-        watch_path = "D:\Inspool"
+        watch_path = r"D:\Inspool"
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--path",
