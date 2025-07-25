@@ -103,14 +103,14 @@ def cli():
     )
     args = parser.parse_args()
 
-    if not args.watch_path:
+    if not args.path:
         print("No directory specified by --path!")
         return
 
     with tempfile.TemporaryDirectory() as tmpdir:
         handler = FrontierScanFileHandler(tmpdir)
         observer = Observer()
-        observer.schedule(handler, args.watch_path, recursive=True)
+        observer.schedule(handler, args.path, recursive=True)
         observer.start()
 
         try:
